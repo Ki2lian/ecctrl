@@ -4,6 +4,17 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { camListenerTargetType } from "../Ecctrl";
 
+export const updateFollowCamRotation = (followCam: THREE.Object3D<THREE.Object3DEventMap>, vy: number) => {
+  const cameraDistance = followCam.position.length();
+  followCam.rotation.x = vy;
+  updateFollowCamPosition(followCam, cameraDistance, vy);
+}
+
+export const updateFollowCamPosition = (followCam: THREE.Object3D<THREE.Object3DEventMap>, distance: number, vy: number) => {
+  followCam.position.y = -distance * Math.sin(-vy);
+  followCam.position.z = -distance * Math.cos(-vy);
+}
+
 export const useFollowCam = function ({
   disableFollowCam = false,
   disableFollowCamPos = null,
@@ -80,9 +91,7 @@ export const useFollowCam = function ({
       cameraDistance = followCam.position.length();
 
       if (vy >= camLowLimit && vy <= camUpLimit) {
-        followCam.rotation.x = vy;
-        followCam.position.y = -cameraDistance * Math.sin(-vy);
-        followCam.position.z = -cameraDistance * Math.cos(-vy);
+        updateFollowCamRotation(followCam, vy);
       }
     }
     return false;
@@ -95,8 +104,7 @@ export const useFollowCam = function ({
 
     if (vz >= camMaxDis && vz <= camMinDis) {
       originZDis.current = vz;
-      followCam.position.z = originZDis.current * Math.cos(-vy);
-      followCam.position.y = originZDis.current * Math.sin(-vy);
+      updateFollowCamPosition(followCam, originZDis.current, vy);
     }
     return false;
   };
@@ -130,9 +138,7 @@ export const useFollowCam = function ({
       cameraDistance = followCam.position.length();
 
       if (vy >= camLowLimit && vy <= camUpLimit) {
-        followCam.rotation.x = vy;
-        followCam.position.y = -cameraDistance * Math.sin(-vy);
-        followCam.position.z = -cameraDistance * Math.cos(-vy);
+        updateFollowCamRotation(followCam, vy);
       }
     }
 
@@ -152,8 +158,7 @@ export const useFollowCam = function ({
 
       if (vz >= camMaxDis && vz <= camMinDis) {
         originZDis.current = vz;
-        followCam.position.z = originZDis.current * Math.cos(-vy);
-        followCam.position.y = originZDis.current * Math.sin(-vy);
+        updateFollowCamPosition(followCam, originZDis.current, vy);
       }
     }
 
@@ -171,9 +176,7 @@ export const useFollowCam = function ({
     cameraDistance = followCam.position.length();
 
     if (vy >= camLowLimit && vy <= camUpLimit) {
-      followCam.rotation.x = vy;
-      followCam.position.y = -cameraDistance * Math.sin(-vy);
-      followCam.position.z = -cameraDistance * Math.cos(vy);
+      updateFollowCamRotation(followCam, vy);
     }
   }
 

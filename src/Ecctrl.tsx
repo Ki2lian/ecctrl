@@ -12,7 +12,7 @@ import {
 import { useEffect, useRef, useMemo, useState, useImperativeHandle, forwardRef, type ReactNode, type ForwardRefRenderFunction } from "react";
 import * as THREE from "three";
 import { useControls } from "leva";
-import { useFollowCam } from "./hooks/useFollowCam";
+import { updateFollowCamRotation, useFollowCam } from "./hooks/useFollowCam";
 import { useGame } from "./stores/useGame";
 import { useJoystickControls } from "./stores/useJoystickControls";
 import { QueryFilterFlags } from "@dimforge/rapier3d-compat";
@@ -142,6 +142,7 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
     if (characterRef.current) {
       characterRef.current.rotateCamera = rotateCamera;
       characterRef.current.rotateCharacterOnY = rotateCharacterOnY;
+      characterRef.current.setCameraRotation = setCameraRotation;
       return characterRef.current!;
     }
     return null;
@@ -885,10 +886,11 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
    */
   const rotateCamera = (x: number, y: number) => {
     pivot.rotation.y += y;
-    followCam.rotation.x = Math.min(
+    const limitedX = Math.min(
       Math.max(followCam.rotation.x + x, camLowLimit),
       camUpLimit
     );
+    updateFollowCamRotation(followCam, limitedX);
   };
 
   /**
@@ -896,6 +898,20 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
    */
   const rotateCharacterOnY = (rad: number) => {
     modelEuler.y += rad;
+  };
+
+  /**
+   * Set camera rotation
+   * @param {number} x - The x angle in radians
+   * @param {number} y - The y angle in radians
+   */
+  const setCameraRotation = (x: number, y: number) => {
+    pivot.rotation.y = y;
+    const limitedX = Math.min(
+      Math.max(x, camLowLimit),
+      camUpLimit
+    );
+    updateFollowCamRotation(followCam, limitedX);
   };
 
   useEffect(() => {
@@ -1556,6 +1572,7 @@ export type camListenerTargetType = "document" | "domElement";
 export interface CustomEcctrlRigidBody extends RapierRigidBody {
   rotateCamera?: (x: number, y: number) => void;
   rotateCharacterOnY?: (rad: number) => void;
+  setCameraRotation?: (x: number, y: number) => void;
 }
 
 export interface EcctrlProps extends RigidBodyProps {
