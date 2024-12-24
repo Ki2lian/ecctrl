@@ -57,6 +57,7 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
   followLight = false,
   disableControl = false,
   disableFollowCam = false,
+  disableFollowCamMove = false,
   disableFollowCamPos = null,
   disableFollowCamTarget = null,
   // Follow camera setups
@@ -144,14 +145,14 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
       characterRef.current.rotateCharacterOnY = rotateCharacterOnY;
       characterRef.current.setCameraRotation = setCameraRotation;
       characterRef.current.setDisableControl = setDisableControl;
-      characterRef.current.setDisableFollowCam = setDisableFollowCam;
+      characterRef.current.setDisableFollowCamMove = setDisableFollowCamMove;
       return characterRef.current!;
     }
     return null;
   }, [characterRef.current]);
 
   const disableControlRef = useRef(disableControl);
-  const disableFollowCamRef = useRef(disableFollowCam);
+  const disableFollowCamMoveRef = useRef(disableFollowCamMove);
 
   /**
    * Mode setup
@@ -573,7 +574,8 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
    * Follow camera initial setups from props
    */
   const cameraSetups = {
-    disableFollowCam: disableFollowCamRef.current,
+    disableFollowCam,
+    disableFollowCamMove: disableFollowCamMoveRef.current,
     disableFollowCamPos,
     disableFollowCamTarget,
     camInitDis,
@@ -934,8 +936,8 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
    * When set to true, the camera will not follow the player character.
    * @param {boolean} value - Whether the follow camera is disabled
    */
-  const setDisableFollowCam = (value: boolean) => {
-    disableFollowCamRef.current = value;
+  const setDisableFollowCamMove = (value: boolean) => {
+    disableFollowCamMoveRef.current = value;
   };
 
   useEffect(() => {
@@ -1126,7 +1128,7 @@ const Ecctrl: ForwardRefRenderFunction<CustomEcctrlRigidBody, EcctrlProps> = ({
       .addScaledVector(pivotZAxis, camTargetPos.z)
     pivot.position.lerp(pivotPosition, 1 - Math.exp(-camFollowMult * delta));
 
-    if (!disableFollowCamRef.current) {
+    if (!disableFollowCam) {
       followCam.getWorldPosition(followCamPosition);
       state.camera.position.lerp(followCamPosition, 1 - Math.exp(-camLerpMult * delta));
       state.camera.lookAt(pivot.position);
@@ -1598,7 +1600,7 @@ export interface CustomEcctrlRigidBody extends RapierRigidBody {
   rotateCharacterOnY?: (rad: number) => void;
   setCameraRotation?: (x: number, y: number) => void;
   setDisableControl?: (value: boolean) => void;
-  setDisableFollowCam?: (value: boolean) => void;
+  setDisableFollowCamMove?: (value: boolean) => void;
 }
 
 export interface EcctrlProps extends RigidBodyProps {
@@ -1611,6 +1613,7 @@ export interface EcctrlProps extends RigidBodyProps {
   followLight?: boolean;
   disableControl?: boolean;
   disableFollowCam?: boolean;
+  disableFollowCamMove?: boolean;
   disableFollowCamPos?: { x: number, y: number, z: number };
   disableFollowCamTarget?: { x: number, y: number, z: number };
   // Follow camera setups

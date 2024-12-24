@@ -17,6 +17,7 @@ export const updateFollowCamPosition = (followCam: THREE.Object3D<THREE.Object3D
 
 export const useFollowCam = function ({
   disableFollowCam = false,
+  disableFollowCamMove = false,
   disableFollowCamPos = null,
   disableFollowCamTarget = null,
   camInitDis = -5,
@@ -39,6 +40,12 @@ export const useFollowCam = function ({
 
   const camInvertXRef = useRef(camInvertX ? -1 : 1);
   const camInvertYRef = useRef(camInvertY ? -1 : 1);
+
+  const disableFollowCamMoveRef = useRef(disableFollowCamMove);
+
+  useEffect(() => {
+    disableFollowCamMoveRef.current = disableFollowCamMove;
+  }, [disableFollowCamMove]);
 
   useEffect(() => {
     camInvertXRef.current = camInvertX ? -1 : 1;
@@ -84,6 +91,7 @@ export const useFollowCam = function ({
 
   // Mouse move event
   const onDocumentMouseMove = (e: MouseEvent) => {
+    if(disableFollowCamMoveRef.current) return false;
     if (document.pointerLockElement || isMouseDown) {
       pivot.rotation.y -= e.movementX * 0.002 * camMoveSpeed * camInvertXRef.current;
       const vy = followCam.rotation.x + (e.movementY * camInvertYRef.current) * 0.002 * camMoveSpeed;
@@ -99,6 +107,7 @@ export const useFollowCam = function ({
 
   // Mouse scroll event
   const onDocumentMouseWheel = (e: Event) => {
+    if(disableFollowCamMoveRef.current) return false;
     const vz = originZDis.current - (e as WheelEvent).deltaY * 0.002 * camZoomSpeed;
     const vy = followCam.rotation.x;
 
@@ -123,7 +132,8 @@ export const useFollowCam = function ({
     // prevent swipe to navigate gesture
     e.preventDefault();
     e.stopImmediatePropagation();
-
+    
+    if(disableFollowCamMoveRef.current) return false;
     const touch1 = e.targetTouches[0];
     const touch2 = e.targetTouches[1];
 
@@ -170,6 +180,7 @@ export const useFollowCam = function ({
    * Gamepad second joystick event
    */
   const joystickCamMove = (movementX: number, movementY: number) => {
+    if(disableFollowCamMoveRef.current) return false;
     pivot.rotation.y -= movementX * 0.005 * camMoveSpeed * 5 * camInvertXRef.current;
     const vy = followCam.rotation.x + (movementY * camInvertYRef.current) * 0.005 * camMoveSpeed * 5;
 
@@ -330,6 +341,7 @@ export const useFollowCam = function ({
 
 export type UseFollowCamProps = {
   disableFollowCam?: boolean;
+  disableFollowCamMove?: boolean;
   disableFollowCamPos?: { x: number, y: number, z: number };
   disableFollowCamTarget?: { x: number, y: number, z: number };
   camInitDis?: number;
